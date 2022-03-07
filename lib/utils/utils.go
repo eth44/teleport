@@ -38,7 +38,7 @@ import (
 	"github.com/gravitational/teleport/lib/modules"
 
 	"github.com/gravitational/trace"
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -454,7 +454,13 @@ func ReadOrMakeHostUUID(dataDir string) (string, error) {
 	if !trace.IsNotFound(err) {
 		return "", trace.Wrap(err)
 	}
-	id = uuid.New()
+	id = uuid.New().String()
+        if id == "" {
+            id = uuid.New().String()
+            if id == "" {
+                return "", trace.BadParameter("Host UUID is empty")
+            }
+        }
 	if err = WriteHostUUID(dataDir, id); err != nil {
 		return "", trace.Wrap(err)
 	}
