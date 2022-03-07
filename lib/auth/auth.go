@@ -2153,15 +2153,10 @@ func (a *Server) GenerateHostCerts(ctx context.Context, req *proto.HostCertsRequ
 		DNSNames:  append([]string{}, req.AdditionalPrincipals...),
 	}
 
-	// DefaultParticipantForRole requests need to specify a DNS name, which must be present in the certificate's DNS Names.
+	// API requests need to specify a DNS name, which must be present in the certificate's DNS Names.
 	// The target DNS is not always known in advance so we add a default one to all certificates.
 	certRequest.DNSNames = append(certRequest.DNSNames, DefaultPrincipalsForRole(req.Role)...)
 
-	// API requests need to specify a DNS name, which must be present in the certificate's DNS Names.
-	// The target DNS is not always known in advance so we add a default one to all certificates.
-	if (types.SystemRoles{req.Role}).IncludeAny(types.RoleAuth, types.RoleAdmin, types.RoleProxy, types.RoleKube, types.RoleApp) {
-		certRequest.DNSNames = append(certRequest.DNSNames, "*."+constants.APIDomain, constants.APIDomain)
-	}
 	// Unlike additional principals, DNS Names is x509 specific and is limited
 	// to services with TLS endpoints (e.g. auth, proxies, kubernetes)
 	if (types.SystemRoles{req.Role}).IncludeAny(types.RoleAuth, types.RoleAdmin, types.RoleProxy, types.RoleKube, types.RoleWindowsDesktop) {
@@ -3770,7 +3765,7 @@ func WithClusterCAs(tlsConfig *tls.Config, ap AccessCache, currentClusterName st
 	}
 }
 
-// DefaultPrincipalsForRole returns default participants for the specified role.
+// DefaultPrincipalsForRole returns default principals for the specified role.
 func DefaultPrincipalsForRole(role types.SystemRole) []string {
 	if (types.SystemRoles{role}).IncludeAny(types.RoleAuth, types.RoleAdmin, types.RoleProxy, types.RoleKube, types.RoleApp) {
 		return []string{
